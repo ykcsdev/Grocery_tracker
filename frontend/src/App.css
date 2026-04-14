@@ -1,0 +1,4 @@
+/* App scoped styles */
+header h1 {
+  color: var(--text-primary);
+}
