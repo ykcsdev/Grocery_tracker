@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const SUGGESTED_PROMPTS = [
   "Where did I spend the most?",
@@ -47,7 +48,7 @@ const ChatPanel = () => {
     setIsTyping(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/chat', { message: text });
+      const response = await axios.post(`${API_BASE_URL}/chat`, { message: text });
       
       const aiMsg = { id: Date.now() + 1, sender: 'ai', text: response.data.reply };
       setMessages(prev => [...prev, aiMsg]);

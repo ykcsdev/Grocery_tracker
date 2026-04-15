@@ -9,7 +9,12 @@ import ChatPanel from './components/ChatPanel';
 
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {

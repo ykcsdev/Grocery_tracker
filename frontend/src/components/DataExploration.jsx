@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ChevronDown, ChevronRight, Search, FileText } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const DataExploration = ({ refreshTrigger }) => {
   const [invoices, setInvoices] = useState([]);
@@ -13,7 +14,7 @@ const DataExploration = ({ refreshTrigger }) => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/invoices/');
+        const response = await axios.get(`${API_BASE_URL}/invoices/`);
         setInvoices(response.data);
         setFilteredInvoices(response.data);
       } catch (error) {
@@ -45,7 +46,7 @@ const DataExploration = ({ refreshTrigger }) => {
     setExpandedId(id);
     if (!details[id]) {
       try {
-        const res = await axios.get(`http://localhost:8000/invoices/receipts/${id}`);
+        const res = await axios.get(`${API_BASE_URL}/invoices/receipts/${id}`);
         setDetails(prev => ({ ...prev, [id]: res.data }));
       } catch (error) {
         console.error("Error fetching invoice details", error);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Droplet } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#14b8a6'];
 
@@ -14,7 +15,7 @@ const DashboardCharts = ({ refreshTrigger }) => {
     const fetchData = async () => {
       try {
         // Pie Chart: Top items by category
-        const pieRes = await axios.get('http://localhost:8000/receipts/topItemsByCategory');
+        const pieRes = await axios.get(`${API_BASE_URL}/receipts/topItemsByCategory`);
         const formattedPie = pieRes.data.map(item => ({
           name: item.category || 'Uncategorized',
           value: parseFloat(item.total_amount_spent_in_category)
@@ -22,11 +23,11 @@ const DashboardCharts = ({ refreshTrigger }) => {
         setPieData(formattedPie);
 
         // Line Chart: Daily spending
-        const lineRes = await axios.get('http://localhost:8000/dashboard/daily-spending');
+        const lineRes = await axios.get(`${API_BASE_URL}/dashboard/daily-spending`);
         setLineData(lineRes.data);
 
         // Money Leaks
-        const leaksRes = await axios.get('http://localhost:8000/dashboard/money-leaks');
+        const leaksRes = await axios.get(`${API_BASE_URL}/dashboard/money-leaks`);
         setLeaks(leaksRes.data);
       } catch (error) {
         console.error("Error fetching charts data", error);
