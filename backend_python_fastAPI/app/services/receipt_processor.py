@@ -1,45 +1,42 @@
 import mimetypes
 import json
-from google.generativeai import GenerativeModel
-from .gemini_client import MODEL_NAME
+from google.genai import types
+from .gemini_client import MODEL_NAME, build_binary_part, get_client
 from .prompts import RECEIPT_PROMPT
-import re
-
-def extract_json(text: str) -> dict:
-    """
-    Extracts the first valid JSON object from LLM output.
-    """
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON object found in Gemini response")
-
-    json_str = match.group(0)
-    return json.loads(json_str)
-
 
 def process_receipt_file(file_path: str) -> dict:
-    model = GenerativeModel(MODEL_NAME)
+    client = get_client()
 
+    # 1. Determine Mime Type
     mime_type, _ = mimetypes.guess_type(file_path)
+    supported_types = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+    
+    if not mime_type or mime_type not in supported_types:
+        raise ValueError(f"Unsupported or unknown file type: {mime_type}")
 
-    if mime_type not in ["application/pdf", "image/jpeg", "image/png"]:
-        raise ValueError(f"Unsupported file type: {mime_type}")
-
+    # 2. Read file
     with open(file_path, "rb") as f:
         file_bytes = f.read()
 
-    response = model.generate_content(
+    # 3. Generate Content
+    response = client.models.generate_content(
+        model=MODEL_NAME,
         contents=[
+            build_binary_part(data=file_bytes, mime_type=mime_type),
             RECEIPT_PROMPT,
-            {
-                "mime_type": mime_type,
-                "data": file_bytes
-            }
         ],
-        generation_config={
-            "response_mime_type": "application/json"
-        }
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            candidate_count=1 
+        ),
     )
-    print("RAW GEMINI RESPONSE:\n", response.text)
 
-    return extract_json(response.text)
+    # 4. Handle the Response
+    if response.parsed:
+        return response.parsed
+    
+    try:
+        clean_text = response.text.strip().strip("```json").strip("```")
+        return json.loads(clean_text)
+    except (json.JSONDecodeError, AttributeError):
+        raise ValueError("Gemini failed to return a valid JSON structure.")

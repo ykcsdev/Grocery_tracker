@@ -1,21 +1,21 @@
 from sqlalchemy import (
-    Column, String, Numeric, Boolean, Integer,
-    DateTime, ForeignKey, Text
+    BigInteger,Boolean,Column, String, Numeric, Boolean, Integer,
+    DateTime, ForeignKey, Text,text
 )
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from decimal import Decimal
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from .database import Base
 import uuid
 class Receipt(Base):
     __tablename__ = "receipts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    #user_id = Column(UUID(as_uuid=True), nullable=True)
-    user_id = Column(Numeric)
+    user_id = Column(UUID(as_uuid=True), nullable=True)
+    user_id_numeric = Column(BigInteger, nullable=True)
 
-    merchant_name = Column(Text, nullable=False)
-    merchant_chain = Column(Text, nullable=False)
+    merchant_name = Column(Text, nullable=True)
+    merchant_chain = Column(Text, nullable=True)
     branch_name = Column(Text)
 
     street = Column(Text)
@@ -24,7 +24,7 @@ class Receipt(Base):
 
     invoice_number = Column(Text)
     receipt_number = Column(Text)
-    file_path = Column(Text)
+    file_path = Column(Text, nullable=False)
 
     purchase_datetime = Column(DateTime)
     currency = Column(String(3), default="EUR")
@@ -49,8 +49,8 @@ class Receipt(Base):
     confidence = relationship("ReceiptConfidence", uselist=False, back_populates="receipt", cascade="all, delete")
     source = relationship("ReceiptSource", uselist=False, back_populates="receipt", cascade="all, delete")
     def update_totals(self):
-        self.discount_total = sum(item.discount for item in self.items)
-        self.net_subtotal = sum(item.line_total for item in self.items)
+        self.discount_total = sum((item.discount or Decimal("0")) for item in self.items)
+        self.net_subtotal = sum((item.line_total or Decimal("0")) for item in self.items)
         self.total_paid = self.net_subtotal - self.discount_total
 
 

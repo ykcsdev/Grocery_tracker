@@ -22,9 +22,8 @@ app.include_router(invoices.router)
 app.include_router(dashboard.router)
 app.include_router(chat.router)
 
-'''
+
 @app.on_event("startup")
 def start_scheduler():
      thread = threading.Thread(target=receipt_scheduler, daemon=True)
      thread.start()
-'''
