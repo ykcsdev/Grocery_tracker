@@ -11,7 +11,7 @@ app = FastAPI(title="Grocery Receipt API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins for development
+    allow_origins=["http://localhost", "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1", "http://localhost:80"],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers

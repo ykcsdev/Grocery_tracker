@@ -97,3 +97,61 @@ CREATE TABLE IF NOT EXISTS public.receipt_taxes (
 	CONSTRAINT receipt_taxes_pkey PRIMARY KEY (id),
 	CONSTRAINT receipt_taxes_receipt_id_fkey FOREIGN KEY (receipt_id) REFERENCES public.receipts(id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE VIEW public.vw_receipt_financials AS
+SELECT
+	r.id AS receipt_id,
+	r.user_id,
+	r.user_id_numeric,
+	r.merchant_name,
+	r.merchant_chain,
+	r.purchase_datetime,
+	r.currency,
+	r.payment_method,
+	r.gross_subtotal,
+	r.discount_total,
+	r.net_subtotal,
+	r.tax_total AS receipt_tax_total,
+	COALESCE(SUM(rt.tax_amount), 0)::numeric(10, 2) AS computed_tax_total,
+	r.total_paid,
+	COUNT(rt.id) AS tax_lines_count,
+	COALESCE(rl.discount_from_loyalty, 0)::numeric(10, 2) AS loyalty_discount
+FROM public.receipts r
+LEFT JOIN public.receipt_taxes rt ON rt.receipt_id = r.id
+LEFT JOIN public.receipt_loyalty rl ON rl.receipt_id = r.id
+GROUP BY
+	r.id,
+	r.user_id,
+	r.user_id_numeric,
+	r.merchant_name,
+	r.merchant_chain,
+	r.purchase_datetime,
+	r.currency,
+	r.payment_method,
+	r.gross_subtotal,
+	r.discount_total,
+	r.net_subtotal,
+	r.tax_total,
+	r.total_paid,
+	rl.discount_from_loyalty;
+
+CREATE OR REPLACE VIEW public.vw_monthly_receipt_summary AS
+SELECT
+	date_trunc('month', r.purchase_datetime)::date AS purchase_month,
+	r.user_id,
+	r.user_id_numeric,
+	r.currency,
+	COUNT(*) AS total_receipts,
+	COALESCE(SUM(r.gross_subtotal), 0)::numeric(12, 2) AS gross_subtotal_sum,
+	COALESCE(SUM(r.discount_total), 0)::numeric(12, 2) AS discount_total_sum,
+	COALESCE(SUM(r.net_subtotal), 0)::numeric(12, 2) AS net_subtotal_sum,
+	COALESCE(SUM(r.tax_total), 0)::numeric(12, 2) AS tax_total_sum,
+	COALESCE(SUM(r.total_paid), 0)::numeric(12, 2) AS total_paid_sum,
+	COALESCE(AVG(r.total_paid), 0)::numeric(12, 2) AS average_receipt_value
+FROM public.receipts r
+WHERE r.purchase_datetime IS NOT NULL
+GROUP BY
+	date_trunc('month', r.purchase_datetime)::date,
+	r.user_id,
+	r.user_id_numeric,
+	r.currency;

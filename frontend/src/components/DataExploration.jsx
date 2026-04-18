@@ -96,7 +96,7 @@ const DataExploration = ({ refreshTrigger }) => {
                     style={{ 
                       borderBottom: '1px solid var(--border-color)', 
                       cursor: 'pointer',
-                      backgroundColor: expandedId === inv.receipt_id ? '#f8fafc' : 'transparent',
+                      backgroundColor: expandedId === inv.receipt_id ? 'var(--bg-color)' : 'transparent',
                       transition: 'background-color 0.2s'
                     }}
                   >
@@ -123,7 +123,7 @@ const DataExploration = ({ refreshTrigger }) => {
                   
                   {/* Expanded Detail Row */}
                   {expandedId === inv.receipt_id && (
-                    <tr style={{ backgroundColor: '#f8fafc' }}>
+                    <tr style={{ backgroundColor: 'var(--bg-color)' }}>
                       <td colSpan="4" style={{ padding: '0', borderBottom: '1px solid var(--border-color)' }}>
                         <div style={{ padding: '1.5rem', paddingLeft: '3rem' }}>
                           {!details[inv.receipt_id] ? (
@@ -133,8 +133,11 @@ const DataExploration = ({ refreshTrigger }) => {
                               <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Items Purchased:</div>
                               <table style={{ width: '100%', fontSize: '0.875rem' }}>
                                 <tbody>
-                                  {details[inv.receipt_id].items?.map(item => (
-                                    <tr key={item.product_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                  {details[inv.receipt_id].items?.map((item, idx) => (
+                                    <tr key={item.product_id} style={{ 
+                                      borderBottom: '1px solid var(--border-color)',
+                                      backgroundColor: idx % 2 === 0 ? 'transparent' : 'rgba(128, 128, 128, 0.05)'
+                                    }}>
                                       <td style={{ padding: '0.5rem 0' }}>{item.product_name}</td>
                                       <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>{item.quantity} {item.unit} × €{item.unit_price?.toFixed(2)}</td>
                                       <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 500 }}>€{item.line_total?.toFixed(2)}</td>

@@ -7,9 +7,8 @@ echo ===============================================
 
 REM Check if GEMINI_API_KEY is set, provide a warning if not
 IF "%GEMINI_API_KEY%"=="" (
-    echo Warning: GEMINI_API_KEY environment variable is not set.
-    echo The AI Chat features will not work without it.
-    SET "GEMINI_API_KEY=your_api_key_here"
+    echo Warning: GEMINI_API_KEY environment variable is not set in the active shell.
+    echo It should be provided via the .env file for docker-compose to pick it up.
 )
 
 echo Starting instances (Postgres DB, ChromaDB, FastAPI Backend, React Frontend)...

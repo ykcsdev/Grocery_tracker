@@ -100,10 +100,10 @@ def get_invoice_detail(receipt_id: str, db: Session = Depends(get_db)):
     return InvoiceDetailResponse(
         invoice_number=receipt.invoice_number,
         merchant_name=receipt.merchant_name,
-        merchant_address=f'{receipt.street}, {receipt.city}',
+        merchant_address=f'{receipt.street or ""}, {receipt.city or ""}'.strip(' ,') or None,
         payment_method = receipt.payment_method,
         total_paid=receipt.total_paid,
-        discount_total = receipt.discount_total,
+        discount_total=receipt.discount_total or 0.0,
         purchase_datetime = receipt.purchase_datetime.strftime("%B %d, %Y %H:%M")if receipt.purchase_datetime else None,
         items=items
     )

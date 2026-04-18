@@ -4,13 +4,28 @@ import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const SUGGESTED_PROMPTS = [
-  "Where did I spend the most?",
-  "How can I save money?"
+  "Which stores have the highest total_paid in my receipts?",
+  "Show my spending by purchase month.",
+  "What categories have the highest line_total overall?",
+  "Which merchant_chain appears most often in my receipts?",
+  "How much tax_total have I paid by month?",
+  "Which payment_method do I use most often?",
+  "What are my biggest receipts by total_paid?",
+  "Show discount_total by merchant_name.",
+  "Which products appear most often in receipt_items?",
+  "How much do I spend by category each month?",
+  "Which receipts have the highest tax_total?",
+  "Show my average total_paid per month."
 ];
+
+const getRandomPrompts = (prompts, count = 3) => {
+  const shuffled = [...prompts].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+};
 
 // Helper to highlight numbers and currency in the text
 const highlightNumbers = (text) => {
-  const regex = /(€\d+(?:\.\d+)?|\d+(?:\.\d+)?)/g;
+  const regex = /(EUR\s?\d+(?:\.\d+)?|€\s?\d+(?:\.\d+)?|\d+(?:\.\d+)?)/g;
   const parts = text.split(regex);
   return parts.map((part, index) => 
     regex.test(part) ? (
@@ -29,6 +44,7 @@ const ChatPanel = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [visiblePrompts, setVisiblePrompts] = useState(() => getRandomPrompts(SUGGESTED_PROMPTS, 3));
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -57,6 +73,7 @@ const ChatPanel = () => {
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
+      setVisiblePrompts(getRandomPrompts(SUGGESTED_PROMPTS, 3));
     }
   };
 
@@ -128,7 +145,7 @@ const ChatPanel = () => {
         
         {/* Suggestions */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-          {SUGGESTED_PROMPTS.map((prompt, idx) => (
+          {visiblePrompts.map((prompt, idx) => (
             <button 
               key={idx} 
               onClick={() => handleSend(prompt)}

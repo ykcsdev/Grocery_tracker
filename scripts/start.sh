@@ -7,9 +7,8 @@ echo "==============================================="
 
 # Check if GEMINI_API_KEY is set, provide a warning if not
 if [ -z "$GEMINI_API_KEY" ]; then
-    echo "Warning: GEMINI_API_KEY environment variable is not set."
-    echo "The AI Chat features will not work without it."
-    export GEMINI_API_KEY="your_api_key_here"
+    echo "Warning: GEMINI_API_KEY environment variable is not set in the active shell."
+    echo "The AI Chat features will fall back to reading from .env file."
 fi
 
 echo "Starting instances (Postgres DB, ChromaDB, FastAPI Backend, React Frontend)..."

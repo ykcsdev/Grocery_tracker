@@ -39,9 +39,9 @@ class InvoiceItemDetail(BaseModel):
 class InvoiceDetailResponse(BaseModel):
     invoice_number: Optional[str]
     merchant_name: Optional[str] = None
-    merchant_address: str
-    discount_total: float
-    payment_method: str
+    merchant_address: Optional[str] = None
+    discount_total: Optional[float] = 0.0
+    payment_method: Optional[str] = None
     total_paid: Optional[float] = None
     purchase_datetime: Optional[str] = None
     items: List[InvoiceItemDetail]

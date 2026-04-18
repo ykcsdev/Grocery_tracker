@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -11,8 +10,16 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # Native Postgres initialization directory
       - ./backend_python_fastAPI/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d grocery" ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     restart: unless-stopped
+    networks:
+      - app-network
 
   chroma:
     image: chromadb/chroma:latest
@@ -21,6 +28,8 @@ services:
     volumes:
       - chromadata:/chroma/chroma
     restart: unless-stopped
+    networks:
+      - app-network
 
   backend:
     build:
@@ -31,12 +40,15 @@ services:
       - DATABASE_URL=postgresql://postgres:password123@db:5432/grocery
       - CHROMA_HOST=chroma
       - CHROMA_PORT=8000
-      # Provide your Gemini API key via .env file or env variables when running
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
-      - db
-      - chroma
+      db:
+        condition: service_healthy
+      chroma:
+        condition: service_started
     restart: unless-stopped
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -48,6 +60,12 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   pgdata:
