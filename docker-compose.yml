@@ -2,17 +2,16 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: grocery
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "${DB_PORT_EXTERNAL}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Native Postgres initialization directory
       - ./backend_python_fastAPI/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d grocery" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -23,7 +22,7 @@ services:
   chroma:
     image: chromadb/chroma:latest
     ports:
-      - "8000:8000"
+      - "${CHROMA_PORT_EXTERNAL}:8000"
     volumes:
       - chromadata:/chroma/chroma
     restart: unless-stopped
@@ -33,12 +32,18 @@ services:
   backend:
     build:
       context: ./backend_python_fastAPI
+      args:
+        - BACKEND_PORT=${BACKEND_PORT:-8000}
     ports:
-      - "8080:8000"
+      - "${BACKEND_PORT_EXTERNAL}:${BACKEND_PORT:-8000}"
     environment:
-      - DATABASE_URL=postgresql://postgres:password123@db:5432/grocery
-      - CHROMA_HOST=chroma
-      - CHROMA_PORT=8000
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - CHROMA_HOST=${CHROMA_HOST:-chroma}
+      - CHROMA_PORT=${CHROMA_PORT:-8000}
+      - APP_SCHEME=${APP_SCHEME}
+      - DEPLOY_DOMAIN=${DEPLOY_DOMAIN}
+      - FRONTEND_PORT_EXTERNAL=${FRONTEND_PORT_EXTERNAL}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_ROUTING_MODEL=${GEMINI_ROUTING_MODEL}
       - GEMINI_PLANNING_MODEL=${GEMINI_PLANNING_MODEL}
@@ -47,7 +52,8 @@ services:
       - GEMINI_RECEIPT_MODEL=${GEMINI_RECEIPT_MODEL}
       - GEMINI_EMBEDDING_MODEL=${GEMINI_EMBEDDING_MODEL}
       - GEMINI_EMBEDDING_DIMENSIONALITY=${GEMINI_EMBEDDING_DIMENSIONALITY}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:5173,http://127.0.0.1,http://localhost:80}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - CORS_ALLOW_ORIGIN_REGEX=${CORS_ALLOW_ORIGIN_REGEX}
     depends_on:
       db:
         condition: service_healthy
@@ -61,10 +67,12 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
-        - VITE_API_PORT=${VITE_API_PORT:-8080}
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_API_SCHEME=${VITE_API_SCHEME}
+        - VITE_API_HOST=${VITE_API_HOST}
+        - VITE_API_PORT=${VITE_API_PORT}
     ports:
-      - "80:80"
+      - "${FRONTEND_PORT_EXTERNAL}:80"
     depends_on:
       - backend
     restart: unless-stopped

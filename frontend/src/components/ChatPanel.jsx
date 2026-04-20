@@ -4,14 +4,14 @@ import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const SUGGESTED_PROMPTS = [
-  "Which stores have the highest total_paid in my receipts?",
+  "Which stores have the highest Total Paid in my receipts?",
   "Show my spending by purchase month.",
-  "What categories have the highest line_total overall?",
-  "Which merchant_chain appears most often in my receipts?",
-  "How much tax_total have I paid by month?",
-  "Which payment_method do I use most often?",
-  "What are my biggest receipts by total_paid?",
-  "Show discount_total by merchant_name.",
+  "What categories have the highest Total overall?",
+  "Which Merchant Chain appears most often in my receipts?",
+  "How much Tax Total have I paid by month?",
+  "Which payment_method did I used most often?",
+  "What are my biggest receipts by Paid?",
+  "Show Discount Total by merchant_name.",
   "Which products appear most often in receipt_items?",
   "How much do I spend by category each month?",
   "Which receipts have the highest tax_total?",
@@ -27,7 +27,7 @@ const getRandomPrompts = (prompts, count = 3) => {
 const highlightNumbers = (text) => {
   const regex = /(EUR\s?\d+(?:\.\d+)?|€\s?\d+(?:\.\d+)?|\d+(?:\.\d+)?)/g;
   const parts = text.split(regex);
-  return parts.map((part, index) => 
+  return parts.map((part, index) =>
     regex.test(part) ? (
       <strong key={index} style={{ color: 'var(--color-blue)', backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '0 4px', borderRadius: '4px' }}>
         {part}
@@ -65,7 +65,7 @@ const ChatPanel = () => {
 
     try {
       const response = await axios.post(`${API_BASE_URL}/chat`, { message: text });
-      
+
       const aiMsg = { id: Date.now() + 1, sender: 'ai', text: response.data.reply };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
@@ -79,7 +79,7 @@ const ChatPanel = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-      
+
       {/* Header */}
       <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{ background: 'var(--color-blue)', padding: '0.5rem', borderRadius: '8px' }}>
@@ -94,22 +94,22 @@ const ChatPanel = () => {
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {messages.map((msg) => (
-          <div key={msg.id} style={{ 
-            display: 'flex', 
-            flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row', 
+          <div key={msg.id} style={{
+            display: 'flex',
+            flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row',
             gap: '0.75rem',
             alignItems: 'flex-start'
           }}>
-            <div style={{ 
-              width: '32px', height: '32px', borderRadius: '50%', 
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%',
               backgroundColor: msg.sender === 'user' ? 'var(--border-color)' : 'var(--color-blue)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0
             }}>
               {msg.sender === 'user' ? <User size={18} color="var(--text-secondary)" /> : <Sparkles size={18} color="white" />}
             </div>
-            
-            <div style={{ 
+
+            <div style={{
               maxWidth: '80%',
               padding: '0.75rem 1rem',
               borderRadius: '12px',
@@ -119,15 +119,15 @@ const ChatPanel = () => {
               lineHeight: 1.5,
               fontSize: '0.925rem'
             }}>
-               {msg.sender === 'ai' ? highlightNumbers(msg.text) : msg.text}
+              {msg.sender === 'ai' ? highlightNumbers(msg.text) : msg.text}
             </div>
           </div>
         ))}
 
         {isTyping && (
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-             <div style={{ 
-              width: '32px', height: '32px', borderRadius: '50%', 
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '50%',
               backgroundColor: 'var(--color-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <Sparkles size={18} color="white" />
@@ -142,17 +142,17 @@ const ChatPanel = () => {
 
       {/* Input Area */}
       <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)' }}>
-        
+
         {/* Suggestions */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
           {visiblePrompts.map((prompt, idx) => (
-            <button 
-              key={idx} 
+            <button
+              key={idx}
               onClick={() => handleSend(prompt)}
-              style={{ 
-                padding: '0.5rem 0.75rem', 
+              style={{
+                padding: '0.5rem 0.75rem',
                 whiteSpace: 'nowrap',
-                backgroundColor: 'var(--panel-bg)', 
+                backgroundColor: 'var(--panel-bg)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '999px',
                 fontSize: '0.8rem',
@@ -168,16 +168,16 @@ const ChatPanel = () => {
 
         {/* Input box */}
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
             placeholder="Ask about your spending..."
-            style={{ 
-              flex: 1, 
-              padding: '0.75rem 1rem', 
-              borderRadius: '99px', 
+            style={{
+              flex: 1,
+              padding: '0.75rem 1rem',
+              borderRadius: '99px',
               border: '1px solid var(--border-color)',
               backgroundColor: 'var(--panel-bg)',
               color: 'var(--text-primary)',
@@ -185,14 +185,14 @@ const ChatPanel = () => {
               fontSize: '0.925rem'
             }}
           />
-          <button 
+          <button
             onClick={() => handleSend(input)}
-            style={{ 
-              width: '44px', height: '44px', 
-              borderRadius: '50%', 
-              backgroundColor: 'var(--color-blue)', 
-              color: 'white', 
-              border: 'none', 
+            style={{
+              width: '44px', height: '44px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--color-blue)',
+              color: 'white',
+              border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
               flexShrink: 0
