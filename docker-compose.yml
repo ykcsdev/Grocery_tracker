@@ -36,6 +36,8 @@ services:
         - BACKEND_PORT=${BACKEND_PORT:-8000}
     ports:
       - "${BACKEND_PORT_EXTERNAL}:${BACKEND_PORT:-8000}"
+    volumes:
+      - receipt_uploads:/app/uploads/receipts
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - CHROMA_HOST=${CHROMA_HOST:-chroma}
@@ -86,3 +88,4 @@ networks:
 volumes:
   pgdata:
   chromadata:
+  receipt_uploads:
