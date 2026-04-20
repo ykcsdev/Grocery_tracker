@@ -1,4 +1,5 @@
 import threading
+import os
 from fastapi import FastAPI
 from app.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +10,23 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Grocery Receipt API")
 
+default_origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1",
+    "http://localhost:80",
+]
+configured_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+allow_origins = configured_origins or default_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1", "http://localhost:80"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
