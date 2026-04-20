@@ -4,14 +4,11 @@ from google import genai
 from google.genai import types
 
 load_dotenv()
-
 ROUTING_MODEL_NAME = os.getenv("GEMINI_ROUTING_MODEL", "gemini-2.5-flash")
 PLANNING_MODEL_NAME = os.getenv("GEMINI_PLANNING_MODEL", "gemini-2.5-flash-lite")
-SQL_MODEL_NAME = os.getenv("GEMINI_SQL_MODEL", ROUTING_MODEL_NAME)
+SQL_MODEL_NAME = os.getenv("GEMINI_SQL_MODEL", "gemini-2.5-flash")
 RESPONSE_MODEL_NAME = os.getenv("GEMINI_RESPONSE_MODEL", "gemini-2.5-flash-lite")
-RECEIPT_MODEL_NAME = os.getenv("GEMINI_RECEIPT_MODEL", RESPONSE_MODEL_NAME)
-# Backward-compatible alias for older imports such as receipt_processor.py.
-MODEL_NAME = RECEIPT_MODEL_NAME
+RECEIPT_MODEL_NAME = os.getenv("GEMINI_RECEIPT_MODEL", "gemini-2.5-flash")
 EMBEDDING_MODEL_NAME = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 EMBEDDING_DIMENSIONALITY = int(os.getenv("GEMINI_EMBEDDING_DIMENSIONALITY", "768"))
 
