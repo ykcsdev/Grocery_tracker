@@ -8,11 +8,11 @@ echo "==============================================="
 # Check if GEMINI_API_KEY is set, provide a warning if not
 if [ -z "$GEMINI_API_KEY" ]; then
     echo "Warning: GEMINI_API_KEY environment variable is not set in the active shell."
-    echo "The AI Chat features will fall back to reading from .env file."
+    echo "It should be provided via the .env file for docker compose to pick it up."
 fi
 
 echo "Starting instances (Postgres DB, ChromaDB, FastAPI Backend, React Frontend)..."
-docker-compose up --build -d
+docker compose up --build -d
 
 echo ""
 echo "==============================================="
@@ -23,5 +23,5 @@ echo "-> Frontend App: http://localhost:80"
 echo "-> Backend API:  http://localhost:8080"
 echo "==============================================="
 echo ""
-echo "To view logs, run: docker-compose logs -f"
-echo "To stop the app, run: docker-compose down"
+echo "To view logs, run: docker compose logs -f"
+echo "To stop the app, run: docker compose down"
