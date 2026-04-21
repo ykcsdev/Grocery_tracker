@@ -28,3 +28,15 @@ def build_binary_part(data: bytes, mime_type: str) -> types.Part:
     Example mime_types: 'image/jpeg', 'application/pdf', 'video/mp4'
     """
     return types.Part.from_bytes(data=data, mime_type=mime_type)
+
+
+def is_gemini_transient_error(exc: Exception, status_codes: tuple[int, ...] = (429, 503)) -> bool:
+    """Detect temporary Gemini overload or rate-limit errors from SDK exceptions."""
+    error_text = str(exc).upper()
+    return any(
+        str(code) in error_text
+        or f"'CODE': {code}".upper() in error_text
+        or f'"CODE": {code}'.upper() in error_text
+        or f"'STATUS': '{'UNAVAILABLE' if code == 503 else 'RESOURCE_EXHAUSTED'}'".upper() in error_text
+        for code in status_codes
+    )

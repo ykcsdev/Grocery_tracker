@@ -1,9 +1,16 @@
 import mimetypes
 import json
 from google.genai import types
-from .gemini_client import RECEIPT_MODEL_NAME, build_binary_part, get_client
+from .gemini_client import (
+    RECEIPT_MODEL_NAME,
+    RESPONSE_MODEL_NAME,
+    build_binary_part,
+    get_client,
+    is_gemini_transient_error,
+)
 from .prompts import RECEIPT_PROMPT
-import os
+
+
 def process_receipt_file(file_path: str) -> dict:
     client = get_client()
 
@@ -19,17 +26,30 @@ def process_receipt_file(file_path: str) -> dict:
         file_bytes = f.read()
 
     # 3. Generate Content
-    response = client.models.generate_content(
-        model=RECEIPT_MODEL_NAME,
-        contents=[
-            build_binary_part(data=file_bytes, mime_type=mime_type),
-            RECEIPT_PROMPT,
-        ],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            candidate_count=1 
-        ),
+    request_contents = [
+        build_binary_part(data=file_bytes, mime_type=mime_type),
+        RECEIPT_PROMPT,
+    ]
+    request_config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        candidate_count=1,
     )
+
+    try:
+        response = client.models.generate_content(
+            model=RECEIPT_MODEL_NAME,
+            contents=request_contents,
+            config=request_config,
+        )
+    except Exception as exc:
+        if not is_gemini_transient_error(exc, status_codes=(503,)):
+            raise
+
+        response = client.models.generate_content(
+            model=RESPONSE_MODEL_NAME,
+            contents=request_contents,
+            config=request_config,
+        )
 
     # 4. Handle the Response
     if response.parsed:

@@ -3,6 +3,7 @@ import re
 
 import bleach
 
+from ..gemini_client import is_gemini_transient_error
 from .interfaces import LLMProvider
 from .sql_tool import SQLTool
 from .vector_db import VectorDB
@@ -145,4 +146,9 @@ class LLMOrchestrator:
 
         except Exception as exc:
             logger.error(f"Error in chat_flow: {exc}")
+            if is_gemini_transient_error(exc):
+                return (
+                    "Our AI accountants are buried in receipts right now. "
+                    "Please try again in a little bit."
+                )
             return "I'm sorry, I encountered an internal error while processing your request."

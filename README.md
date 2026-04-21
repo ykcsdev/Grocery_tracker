@@ -14,29 +14,30 @@ Full-stack grocery receipt tracker with:
 - `frontend/` - React dashboard
 - `docker-compose.yml` - Full local stack with Docker
 
-## Environment Files
+## Environment Configuration Files
 
-Two `.env` files matter in this repo:
+Use [.env.example](d:/Projects/Grocery_tracker/.env.example:1) as the source of truth for the variables that must be present. It contains the current production-oriented variable list plus notes for what each value is used for.
 
-1. Root `.env`
-   Used by `docker compose` and shared local defaults.
-2. `backend_python_fastAPI/.env`
-   Used when running the FastAPI app manually from the backend folder.
+## Startup Scripts
 
-### Required Gemini variables
+The repo includes helper scripts for bringing the stack up quickly:
 
-These model names now live in the `.env` files instead of being declared in Python:
+- `scripts/start.bat` - Docker Compose startup on Windows
+- `scripts/start.sh` - Docker Compose startup on Linux/macOS
+- `scripts/start-local.sh` - local non-Docker startup for Linux/macOS when PostgreSQL, Chroma, Python, and Node are installed on the machine
 
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_ROUTING_MODEL=gemini-2.5-flash
-GEMINI_PLANNING_MODEL=gemini-2.5-flash-lite
-GEMINI_SQL_MODEL=gemini-2.5-flash
-GEMINI_RESPONSE_MODEL=gemini-2.5-flash-lite
-GEMINI_RECEIPT_MODEL=gemini-2.5-flash
-GEMINI_EMBEDDING_MODEL=gemini-embedding-001
-GEMINI_EMBEDDING_DIMENSIONALITY=768
-```
+If you prefer the scripts, configure the matching `.env` file first and then run the one appropriate for your system.
+
+## Scheduler
+
+The backend starts a background receipt scheduler on application startup. Its purpose is to:
+
+- poll for receipts uploaded with status `not_processed`
+- send the stored receipt file to Gemini for extraction
+- write the parsed data into PostgreSQL
+- update the receipt status to `processed` or `failed`
+
+This is why receipt upload is asynchronous: the upload endpoint stores the file and queue record first, then the scheduler completes the extraction in the background.
 
 ## Run Manually
 
@@ -47,13 +48,7 @@ Copy `.env.example` values into:
 - `.env`
 - `backend_python_fastAPI/.env`
 
-Set at least:
-
-- `GEMINI_API_KEY`
-- `DATABASE_URL`
-- `CHROMA_HOST`
-- `CHROMA_PORT`
-- `VITE_API_URL`
+Review [.env.example](d:/Projects/Grocery_tracker/.env.example:1) and fill in the values required for your machine and deployment target.
 
 ### 2. Start PostgreSQL
 
@@ -92,6 +87,7 @@ Backend URLs:
 
 - API: `http://127.0.0.1:8000`
 - Docs: `http://127.0.0.1:8000/docs`
+- Receipt scheduler: starts automatically with the FastAPI app and processes uploaded receipts in the background
 
 ### 6. Start the frontend
 
@@ -110,17 +106,7 @@ Frontend URL:
 
 ### 1. Prepare the root `.env`
 
-Make sure the root `.env` contains:
-
-- `GEMINI_API_KEY`
-- `GEMINI_ROUTING_MODEL`
-- `GEMINI_PLANNING_MODEL`
-- `GEMINI_SQL_MODEL`
-- `GEMINI_RESPONSE_MODEL`
-- `GEMINI_RECEIPT_MODEL`
-- `GEMINI_EMBEDDING_MODEL`
-- `GEMINI_EMBEDDING_DIMENSIONALITY`
-- `VITE_API_URL=http://localhost:8080`
+Review [.env.example](d:/Projects/Grocery_tracker/.env.example:1) and copy the required values into the root `.env`.
 
 ### 2. Build and start all services
 
@@ -132,16 +118,16 @@ docker compose up --build
 
 This starts:
 
-- `db` on `localhost:5432`
-- `chroma` on `localhost:8000`
-- `backend` on `localhost:8080`
-- `frontend` on `localhost:80`
+- `db` on the external database port configured in `.env`
+- `chroma` on the external Chroma port configured in `.env`
+- `backend` on the external backend port configured in `.env`
+- `frontend` on the external frontend port configured in `.env`
 
 ### 3. Open the app
 
-- Frontend: `http://localhost`
-- Backend API: `http://localhost:8080`
-- Backend docs: `http://localhost:8080/docs`
+- Frontend: open the configured public host and frontend port
+- Backend API: open the configured public host and backend port
+- Backend docs: append `/docs` to the backend API URL
 
 ### 4. Stop the stack
 
