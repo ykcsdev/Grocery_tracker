@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from app.services.rag.gemini_provider import GeminiProvider
 from app.services.rag.vector_db import VectorDB
 from app.services.rag.sql_tool import SQLTool
 from app.services.rag.llm_orchestrator import LLMOrchestrator
+from app.limiter import limiter
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -24,7 +25,8 @@ orchestrator = LLMOrchestrator(
 )
 
 @router.post("/")
-def chat_with_ai(request: ChatRequest):
+@limiter.limit("15/minute")
+def chat_with_ai(request: Request, payload: ChatRequest):
     # The orchestrator handles sanitization, intents, contexts, and generation.
-    response = orchestrator.chat_flow(request.message)
+    response = orchestrator.chat_flow(payload.message)
     return {"reply": response}

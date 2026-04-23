@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from ..database import SessionLocal
@@ -6,6 +6,7 @@ from datetime import datetime
 from ..models import Receipt,ReceiptItem
 from ..schemas import ReceiptUploadResponse, ProcessingStatusResponse, ReceiptItemUpdateRequest,CategorySummaryResponse
 from ..utils.file_storage import save_receipt_file
+from ..limiter import limiter
 
 router = APIRouter(prefix="/receipts", tags=["Receipts"])
 
@@ -17,9 +18,9 @@ def get_db():
     finally:
         db.close()
 
-
 @router.post("/upload", response_model=ReceiptUploadResponse)
-def upload_receipt(file: UploadFile, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def upload_receipt(request: Request, file: UploadFile, db: Session = Depends(get_db)):
     file_path = save_receipt_file(file)
     original_filename = file.filename
 
@@ -39,6 +40,7 @@ def upload_receipt(file: UploadFile, db: Session = Depends(get_db)):
 
 
 @router.get("/{receipt_id}/status", response_model=ProcessingStatusResponse)
+@limiter.limit("100/minute")
 def get_processing_status(receipt_id: str, db: Session = Depends(get_db)):
     receipt = db.query(Receipt).filter(Receipt.id == receipt_id).first()
 

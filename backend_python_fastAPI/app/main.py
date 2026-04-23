@@ -3,12 +3,17 @@ import os
 from fastapi import FastAPI
 from app.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from app.routers import receipts, invoices, dashboard, chat
+from app.limiter import limiter
 from app.services.scheduler import receipt_scheduler
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Grocery Receipt API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 def _csv_env(name: str) -> list[str]:
     return [

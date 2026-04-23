@@ -7,6 +7,7 @@ Full-stack grocery receipt tracker with:
 - PostgreSQL database
 - Chroma vector database
 - Gemini-powered receipt and chat features
+- Rate-limited public endpoints for chat and receipt upload
 
 ## Project Structure
 
@@ -38,6 +39,16 @@ The backend starts a background receipt scheduler on application startup. Its pu
 - update the receipt status to `processed` or `failed`
 
 This is why receipt upload is asynchronous: the upload endpoint stores the file and queue record first, then the scheduler completes the extraction in the background.
+
+## AI Tools Used By Chat
+
+The chat flow is not a plain text bot. It can use multiple backend tools to answer grounded questions:
+
+- SQL analytics over the PostgreSQL receipt database for totals, comparisons, rankings, and trends
+- semantic memory search in ChromaDB for previously stored financial insights
+- Gemini planning and response models to decide which tools to use and compose the final answer
+
+This means the assistant can answer with database-backed numbers instead of only free-form model text.
 
 ## Run Manually
 
@@ -88,6 +99,7 @@ Backend URLs:
 - API: `http://127.0.0.1:8000`
 - Docs: `http://127.0.0.1:8000/docs`
 - Receipt scheduler: starts automatically with the FastAPI app and processes uploaded receipts in the background
+- Rate limiting: chat and receipt upload endpoints are protected with `slowapi`
 
 ### 6. Start the frontend
 
@@ -160,3 +172,9 @@ Check running containers:
 ```bash
 docker ps
 ```
+
+## Security Notes
+
+- Keep real secrets only in local or hosting environment variables, never in frontend code.
+- `.env` and `backend_python_fastAPI/.env` are ignored by git in this repo.
+- Public-facing endpoints for `chat` and `receipts/upload` are rate limited to reduce abuse and accidental AI spend.
